@@ -2,22 +2,28 @@
 #define NODE_HPP
 
 #include <iostream>
-#include <stdexcept>
 #include <vector>
-#include <stack>
-#include <queue>
 
 using namespace std;
 
-template<typename T>
+template <typename T>
 
-class Node
-{
-    public:
-        T key;
-        std::vector<Node*> children;
+class Node {
+public:
+    T key;
+    std::vector<Node<T>*> children;
 
-        Node(const T& key, size_t maxChildren);
-};
+    Node(T key) : key(key) {};
+    ~Node() {}
 
-#endif
+    T getKey() const { return key; }
+    vector<Node<T>*> getChildren() const { return children; }
+
+    void addChild(const Node<T>& child) {
+        children.push_back(new Node<T>(child));
+    }
+
+
+}; //end class
+
+#endif 

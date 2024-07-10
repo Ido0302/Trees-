@@ -1,28 +1,37 @@
-CXX = g++
-CXXFLAGS = -g -std=c++11 -Werror -Wsign-conversion
-VALGRIND_FLAGS=-v --leak-check=full --show-leak-kinds=all  --error-exitcode=99
+# Functional Makefile for the project
+# Containing: all, test, valgrind, clean
+#			- all: compiles the demo and runs it
+#			- test: compiles the test and runs it
+#			- valgrind: runs the demo with valgrind
+#			- clean: removes all object files and executables
 
-SOURCES = Demo.cpp Node.cpp Tree.cpp
-OBJECTS=$(subst .cpp,.o,$(SOURCES))
+
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -I.
+GUIFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
+VALGRIND_FLAGS = -v --leak-check=full --show-leak-kinds=all --error-exitcode=99
+
+SOURCES_DEMO = Tree.hpp Node.hpp Demo.cpp
+SOURCES_TEST = Tree.hpp Node.hpp Test.cpp TestCounter.cpp
 
 tree: demo
-	./$^
+	./demo
 
-demo: Demo.o $(filter-out TestCounter.o Test.o, $(OBJECTS))
-	$(CXX) $(CXXFLAGS) $^ -o demo
+demo: Demo.o Tree.o Node.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(GUIFLAGS)
 
-test: TestCounter.o Test.o $(filter-out demo.o, $(OBJECTS))
-	$(CXX) $(CXXFLAGS) $^ -o test
+test: Test.o TestCounter.o Tree.o Node.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+	./test
 
-tidy:
-	clang-tidy $(SOURCES) -checks=bugprone-*,clang-analyzer-*,cppcoreguidelines-*,performance-*,portability-*,readability-*,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-owning-memory --warnings-as-errors=-* --
-
-valgrind: demo test
-	valgrind --tool=memcheck $(VALGRIND_FLAGS) ./demo 2>&1 | { egrep "lost| at " || true; }
-	valgrind --tool=memcheck $(VALGRIND_FLAGS) ./test 2>&1 | { egrep "lost| at " || true; }
+valgrind: demo
+	valgrind $(VALGRIND_FLAGS) ./demo
+	
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) --compile $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -f *.o demo test
+
+.PHONY: all test clean valgrind
