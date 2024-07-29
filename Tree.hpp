@@ -1,79 +1,277 @@
+//ID: 207826694
+//GMAIL: didooron@gmail.com
 
 #ifndef TREE_HPP
 #define TREE_HPP
 
-#include "Node.hpp"
 
 #include <iostream>
+#include <string>
 #include <stdexcept>
 #include <vector>
 #include <queue>
-#include <map>
-#include <string>
 
+#include "Node.hpp"
+#include <SFML/Graphics.hpp>
 #include <cstddef>
-
-//#include <SFML/Graphics.hpp>
 #include <type_traits>
 #include <sstream>
-#include <iomanip>
+#include <map>
+#include <iomanip> 
 
-const float NODE_RADIUS = 50.0f; // constant for the radius of the nodes (GUI)
+
+const float NODE_RADIUS = 40.0f; // constant for the radius of the nodes (GUI)
 
 template <typename T, int K = 2> // by default, K is 2 (Binary tree)
 class Tree
 {
 private:
     Node<T> *root;
+    bool is_binary_tree;
     int k;
-
+    
     /*
-     * The following vectors are used to store the nodes in the order of traversal.
+    * The following vectors are used to store the nodes in the order of traversal.
+    */
+    std::vector<Node<T> *> pre_order_nodes;
+    std::vector<Node<T> *> post_order_nodes;
+    std::vector<Node<T> *> in_order_nodes;
+    std::vector<Node<T> *> bfs_nodes;
+    std::vector<Node<T> *> dfs_nodes;
+    std::vector<Node<T> *> heap_nodes;
+
+
+public:
+    // Constructor
+    Tree() : root(nullptr), is_binary_tree(K == 2) {
+        k = K;
+    }
+
+    // Destructor
+    ~Tree()
+    {
+        delete_tree(root);
+    }
+
+    Node<T>* get_root() const
+    {
+        return root;
+    }
+
+    void set_root(Node<T>* newRoot){
+        root = newRoot;
+    }
+
+    int get_k() const
+    {
+        return k;
+    }
+
+
+/**
+ * create new root if wasn't exist tree before, else throw exeption
+ */
+    void add_root(const Node<T> &node)
+    {
+        if (root != nullptr)
+        {
+            throw std::runtime_error("Root node already exists.");
+        }
+        root = new Node<T>(node.get_value());
+    }
+
+/**
+ * get exist node and other node and add the other to exist node's children
+ */
+    void add_sub_node(const Node<T> &parent, const Node<T> &child)
+    {
+        //chech if the tree exist
+        if (root == nullptr)
+            throw std::runtime_error("Root node not found.");
+        
+        Node<T> *parent_ptr = find_node(root, parent.get_value());
+
+        //if the requested node not found
+        if (parent_ptr == nullptr)
+            throw std::runtime_error("Parent node not found.");
+
+        //if the requested node is full
+        if (parent_ptr->children.size() >= (size_t)this->k)
+            throw std::runtime_error("Node has reached the maximum number of children.");
+
+        parent_ptr->add_child(child);
+    }
+
+    /**
+     * get some root of tree and value and search for node with this value.
+     * if exist return the pointer of node, else return null
      */
-    std::vector<Node<T> *> pre_order_vector;
-    std::vector<Node<T> *> post_order_vector;
-    std::vector<Node<T> *> in_order_vector;
-    std::vector<Node<T> *> bfs_vector;
-    std::vector<Node<T> *> dfs_vector;
-    std::vector<Node<T> *> heap_vector;
+    Node<T> *find_node(Node<T> *node, const T &value)
+    {
+        if (node == nullptr)
+            return nullptr;
+
+        if (node->get_value() == value)
+            return node;
+            
+        for (auto child : node->get_children())
+        {
+            Node<T> *found = find_node(child, value);
+            if (found != nullptr)
+                return found;
+        }
+        return nullptr;
+    }
+
+//iterator implemantion
+
+/**
+ * return iterator to begin of vector who order as pre-order
+ */
+    typename std::vector<Node<T> *>::iterator begin_pre_order()
+    {
+        if (K != 2)
+        {
+            return begin_dfs_scan();
+        }
+        pre_order_nodes.clear();
+        pre_order_traversal(root, pre_order_nodes);
+        return pre_order_nodes.begin();
+    }
+
+
+/**
+ * return iterator to end of vector who order as pre-order
+ */
+    typename std::vector<Node<T> *>::iterator end_pre_order()
+    {
+        if (K != 2)
+        {
+            return end_dfs_scan();
+        }
+        return pre_order_nodes.end();
+    }
+
+/**
+ * pre-order travesal on tree 
+ */
+    void pre_order_traversal(Node<T> *node, std::vector<Node<T> *> &result)
+    {
+        if (node == nullptr)
+            return;
+        result.push_back(node);
+        for (auto child : node->get_children())
+        {
+            pre_order_traversal(child, result);
+        }
+    }
+
+/**
+ * return iterator to begin of vector who order as post-order
+ */
+    typename std::vector<Node<T> *>::iterator begin_post_order()
+    {
+        if (K != 2)
+        {
+            return begin_dfs_scan();
+        }
+        post_order_nodes.clear();
+        post_order_traversal(root, post_order_nodes);
+        return post_order_nodes.begin();
+    }
+
+/**
+ * return iterator to end of vector who order as post-order
+ */
+    typename std::vector<Node<T> *>::iterator end_post_order()
+    {
+        if (K != 2)
+        {
+            return end_dfs_scan();
+        }
+        return post_order_nodes.end();
+    }
+
+/*
+*  post-order traversal on tree
+*/   
+    void post_order_traversal(Node<T> *node, std::vector<Node<T> *> &result)
+    {
+        if (node == nullptr)
+            return;
+        for (auto child : node->get_children())
+        {
+            post_order_traversal(child, result);
+        }
+        result.push_back(node);
+    }
+
+/**
+ * return iterator to begin of vector who order as in-order
+ */
+    typename std::vector<Node<T> *>::iterator begin_in_order()
+    {
+        if (K != 2)
+        {
+            return begin_dfs_scan();
+        }
+        in_order_nodes.clear();
+        in_order_traversal(root, in_order_nodes);
+        return in_order_nodes.begin();
+    }
+
+/**
+ * return iterator to end of vector who order as in-order
+ */
+    typename std::vector<Node<T> *>::iterator end_in_order()
+    {
+        if (K != 2)
+        {
+            return end_dfs_scan();
+        }
+        return in_order_nodes.end();
+    }
+
+/**
+ * in-order traversal on tree 
+ */ 
+    void in_order_traversal(Node<T> *node, std::vector<Node<T> *> &result) {
+    if (node == nullptr)
+        return;
+
+    auto children = node->get_children();
+    if (children.size() > 0) {
+        in_order_traversal(children[0], result); // Left child
+    }
+    result.push_back(node); // Root
+    if (children.size() > 1) {
+        in_order_traversal(children[1], result); // Right child
+    }
+    }
+
+/**
+ * return iterator to begin of vector who order as BFS
+ */
+    typename std::vector<Node<T> *>::iterator begin_bfs_scan()
+    {
+        bfs_nodes.clear();
+        BFS_traversal(root, bfs_nodes);
+        return bfs_nodes.begin();
+    }
 
     
-    void preOrderSearch(Node<T> *node, std::vector<Node<T> *> &result)
+/**
+ * return iterator to end of vector who order as BFS
+ */
+    typename std::vector<Node<T> *>::iterator end_bfs_scan()
     {
-        if (node == nullptr)
-            return;
-        result.push_back(node);
-        for (auto child : node->getChildren())
-            preOrderSearch(child, result);
+        return bfs_nodes.end();
     }
 
-    void postOrderSearch(Node<T> *node, std::vector<Node<T> *> &result)
-    {
-        if (node == nullptr)
-            return;
-        for (auto child : node->getChildren())
-            postOrderSearch(child, result);
-        result.push_back(node);
-    }
-
-    void inOrderSearch(Node<T> *node, std::vector<Node<T> *> &result)
-    {
-        if (node == nullptr)
-            return;
-
-        auto children = node->getChildren();
-        if (children.size() > 0)
-        {
-            inOrderSearch(children[0], result); // Left child
-        }
-        result.push_back(node); // Root
-        if (children.size() > 1)
-        {
-            inOrderSearch(children[1], result); // Right child
-        }
-    }
-
-    void bfs(Node<T> *node, std::vector<Node<T> *> &result)
+/**
+ * BFS traversal on tree
+ */
+    void BFS_traversal(Node<T> *node, std::vector<Node<T> *> &result)
     {
         if (node == nullptr)
             return;
@@ -84,233 +282,98 @@ private:
             Node<T> *current = q.front();
             q.pop();
             result.push_back(current);
-            for (auto child : current->getChildren())
+            for (auto child : current->get_children())
             {
                 q.push(child);
             }
         }
     }
 
-    void dfs(Node<T> *node, std::vector<Node<T> *> &result)
+/**
+ * return iterator to begin of vector who order as DFS
+ */
+    typename std::vector<Node<T> *>::iterator begin_dfs_scan()
+    {
+        dfs_nodes.clear();
+        DFS_traversal(root, dfs_nodes);
+        return dfs_nodes.begin();
+    }
+
+
+/**
+ * return iterator to begin of vector who order as DFS
+ */
+    typename std::vector<Node<T> *>::iterator end_dfs_scan()
+    {
+        return dfs_nodes.end();
+    }
+
+/**
+ * DFS traversal on tree
+ */
+
+    void DFS_traversal(Node<T> *node, std::vector<Node<T> *> &result)
     {
         if (node == nullptr)
             return;
         result.push_back(node);
-        for (auto child : node->getChildren())
+        for (auto child : node->get_children())
         {
-            dfs(child, result);
+            DFS_traversal(child, result);
         }
     }
+
+
+    typename std::vector<Node<T> *>::iterator begin_heap()
+    {
+        heap_nodes.clear();
+        myHeap(root, heap_nodes);
+        return heap_nodes.begin();
+    }
+
+    typename std::vector<Node<T> *>::iterator end_heap()
+    {
+        return heap_nodes.end();
+    }
+
+    
 
     void myHeap(Node<T> *node, std::vector<Node<T> *> &result)
     {
         if (node == nullptr)
             return;
-        dfs(node, result); 
-
-        //Compare function
-        auto comp = [](Node<T> *node1, Node<T> *node2)
-        { return node1->getKey() > node2->getKey(); };
-
-        //make heap from vector and the compare function
+        DFS_traversal(node, result);
+        auto comp = [](Node<T> *lhs, Node<T> *rhs) { return lhs->get_value() > rhs->get_value(); };
         std::make_heap(result.begin(), result.end(), comp);
     }
-
-public:
-    // Constructor
-    Tree() : root(nullptr) { k = K; }
-
-    // Destructor
-    ~Tree()
-    {
-        delete_tree(root);
-    }
-
-    int get_k() const
-    {
-        return k;
-    }
-
-    void add_root(const Node<T> &node)
-    {
-        if (root != nullptr)
-        {
-            throw std::runtime_error("Root node already exists.");
-        }
-        root = new Node<T>(node.getKey());
-    }
-
-    void add_sub_node(const Node<T> &parent, const Node<T> &newChild)
-    {
-        if (root == nullptr)
-        {
-            throw std::runtime_error("Tree not created.");
-        }
-
-        //find the request node
-        Node<T> *parent_ptr = find_node(root, parent.getKey());
-
-        if (parent_ptr == nullptr)
-        {
-            throw std::runtime_error("The node not found.");
-        }
-
-        if (parent_ptr->children.size() >= (size_t)this->k)
-        {
-            throw std::runtime_error("Node has reached the maximum number of children.");
-        }
-
-        parent_ptr->addChild(newChild);
-    }
-
-    
-    /**
-     * The function get pointer to root and some value.
-     * The function search in tree node with this value.
-     * If found, return pointer to request node, else return null
-     */
-    Node<T> *find_node(Node<T> *node, const T &key)
-    {
-        if (node == nullptr)
-            return nullptr;
-        if (node->getKey() == key)
-            return node;
-        for (auto child : node->getChildren()) // search for each node's cheildren
-        {
-            Node<T> *found = find_node(child, key);
-            if (found != nullptr)
-                return found;
-        }
-        return nullptr;
-    }
-
-    Node<T> *getRoot() const
-    {
-        return root;
-    }
-
-    typename std::vector<Node<T> *>::iterator begin_pre_order()
-    {
-        if (K != 2)
-        {
-            return begin_dfs_scan();
-        }
-        pre_order_vector.clear();
-        preOrderSearch(root, pre_order_vector);
-        return pre_order_vector.begin();
-    }
-
-    typename std::vector<Node<T> *>::iterator end_pre_order()
-    {
-        if (K != 2)
-        {
-            return end_dfs_scan();
-        }
-        return pre_order_vector.end();
-    }
-
-    typename std::vector<Node<T> *>::iterator begin_post_order()
-    {
-        if (K != 2)
-        {
-            return begin_dfs_scan();
-        }
-        post_order_vector.clear();
-        postOrderSearch(root, post_order_vector);
-        return post_order_vector.begin();
-    }
-
-    typename std::vector<Node<T> *>::iterator end_post_order()
-    {
-        if (K != 2)
-        {
-            return end_dfs_scan();
-        }
-        return post_order_vector.end();
-    }
-
-    typename std::vector<Node<T> *>::iterator begin_in_order()
-    {
-        if (K != 2)
-        {
-            return begin_dfs_scan();
-        }
-        in_order_vector.clear();
-        inOrderSearch(root, in_order_vector);
-        return in_order_vector.begin();
-    }
-
-    typename std::vector<Node<T> *>::iterator end_in_order()
-    {
-        if (K != 2)
-        {
-            return end_dfs_scan();
-        }
-        return in_order_vector.end();
-    }
-
-    typename std::vector<Node<T> *>::iterator begin_bfs_scan()
-    {
-        bfs_vector.clear();
-        bfs(root, bfs_vector);
-        return bfs_vector.begin();
-    }
-
-    typename std::vector<Node<T> *>::iterator end_bfs_scan()
-    {
-        return bfs_vector.end();
-    }
-
-    typename std::vector<Node<T> *>::iterator begin_dfs_scan()
-    {
-        dfs_vector.clear();
-        dfs(root, dfs_vector);
-        return dfs_vector.begin();
-    }
-
-    typename std::vector<Node<T> *>::iterator end_dfs_scan()
-    {
-        return dfs_vector.end();
-    }
-
-    typename std::vector<Node<T> *>::iterator begin_heap()
-    {
-        heap_vector.clear();
-        myHeap(root, heap_vector);
-        return heap_vector.begin();
-    }
-
-    typename std::vector<Node<T> *>::iterator end_heap()
-    {
-        return heap_vector.end();
-    }
-
 
     void delete_tree(Node<T> *node)
     {
         if (node == nullptr)
             return;
-        for (auto child : node->getChildren())
+        for (auto child : node->get_children())
         {
             delete_tree(child);
         }
         delete node;
     }
 
-       
-    // stream operator: launches the GUI to visualize the tree.
+
+    /*
+    Stream operator: launches the GUI to visualize the tree.
+    */
     friend std::ostream &operator<<(std::ostream &os, Tree<T, K> &tree)
     {
-        Node<T> *root = tree.getRoot();
+        Node<T> *root = tree.get_root();
 
         if(root == nullptr)
         {
             os << "Tree is empty." << std::endl;
             return os;
         }
-
+       
         os << "Launching GUI..." << std::endl;
-
+       
         // Font initialization
         sf::Font font;
         if (!font.loadFromFile("arial.ttf")) {
@@ -321,8 +384,8 @@ public:
         // Window initialization
         sf::RenderWindow window(sf::VideoMode(700, 700), "EX4");
         window.setVerticalSyncEnabled(true); // Attempt to enable vertical sync
-
-
+        
+        
         // Main loop of GUI
         while (window.isOpen())
         {
@@ -334,24 +397,24 @@ public:
             }
 
             window.clear(sf::Color::Cyan);
-            tree.drawTree(window, font); // Main function to draw the tree
+            tree.draw_tree(window, font); // Main function to draw the tree
             window.display();
         }
-
+        
     return os;
-
+    
     }
 
-
-    //drawTree function: draws the tree on the window.
-    //It calls the helper functions to calculate the positions of the nodes and draw them.
-
-void drawTree(sf::RenderWindow &window, sf::Font &font)
+    /*
+    draw_tree function: draws the tree on the window.
+    It calls the helper functions to calculate the positions of the nodes and draw them.
+    */
+void draw_tree(sf::RenderWindow &window, sf::Font &font)
 {
     if (this->root == nullptr) return;
 
     // Create a map to store positions of each node
-    std::map<Node<T>*, sf::_vector2f> positions;
+    std::map<Node<T>*, sf::Vector2f> positions;
     float start_x = window.getSize().x / 2;
     float start_y = NODE_RADIUS * 2;
     calculate_positions(this->root, positions, start_x, start_y, window.getSize().x / 4);
@@ -361,30 +424,30 @@ void drawTree(sf::RenderWindow &window, sf::Font &font)
         draw_node(window, entry.first, entry.second, font, positions);
     }
 }
-
-//    calculate_positions function: calculates the positions of the nodes in the tree.
-//    It uses a map to store the positions of each node.
-//    it calculates the positions recursively by traversing the tree.
-
-void calculate_positions(Node<T> *node, std::map<Node<T>*, sf::_vector2f> &positions, float x, float y, float horizontal_spacing)
+/*
+    calculate_positions function: calculates the positions of the nodes in the tree.
+    It uses a map to store the positions of each node.
+    it calculates the positions recursively by traversing the tree.
+*/
+void calculate_positions(Node<T> *node, std::map<Node<T>*, sf::Vector2f> &positions, float x, float y, float horizontal_spacing)
 {
     if (node == nullptr) return;
 
-    positions[node] = sf::_vector2f(x, y);
-    float child_x = x - ((node->getChildren().size() - 1) * horizontal_spacing / 2);
+    positions[node] = sf::Vector2f(x, y);
+    float child_x = x - ((node->get_children().size() - 1) * horizontal_spacing / 2);
     float child_y = y + NODE_RADIUS * 3;
 
-    for (auto child : node->getChildren())
+    for (auto child : node->get_children())
     {
         calculate_positions(child, positions, child_x, child_y, horizontal_spacing / 2);
         child_x += horizontal_spacing;
     }
 }
-
-//    draw_node function: draws the node on the window.
-//    It uses the SFML library to draw the node and the text.
-
-void draw_node(sf::RenderWindow &window, Node<T> *node, sf::_vector2f position, sf::Font &font, const std::map<Node<T>*, sf::_vector2f> &positions)
+/*
+    draw_node function: draws the node on the window.
+    It uses the SFML library to draw the node and the text.
+*/
+void draw_node(sf::RenderWindow &window, Node<T> *node, sf::Vector2f position, sf::Font &font, const std::map<Node<T>*, sf::Vector2f> &positions)
 {
     sf::CircleShape circle(NODE_RADIUS);
     circle.setFillColor(sf::Color::Green);
@@ -395,12 +458,12 @@ void draw_node(sf::RenderWindow &window, Node<T> *node, sf::_vector2f position, 
     text.setFont(font);
     if constexpr (std::is_same<T, std::string>::value)
     {
-        text.setString(node->getKey());
+        text.setString(node->get_value());
     }
     else
     {
         std::ostringstream oss;
-        oss << std::fixed << std::setprecision(1) << node->getKey();
+        oss << std::fixed << std::setprecision(1) << node->get_value();
         text.setString(oss.str());
     }
     text.setCharacterSize(20);
@@ -413,8 +476,8 @@ void draw_node(sf::RenderWindow &window, Node<T> *node, sf::_vector2f position, 
 
     // Draw lines to children
     // The lines are drawn using the positions map which contains the positions of each node.
-
-    for (auto child : node->getChildren())
+    
+    for (auto child : node->get_children())
     {
         sf::Vertex line[] =
         {
@@ -425,8 +488,6 @@ void draw_node(sf::RenderWindow &window, Node<T> *node, sf::_vector2f position, 
     }
 }
 
+}; //end class
 
-
-}; // end class
-
-#endif
+#endif 

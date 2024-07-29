@@ -8,7 +8,9 @@
 
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -I.
-GUIFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
+#GUIFLAGS = -lsfml-graphics -lsfml-window -lsfml-system
+LDFLAGS = -L/usr/lib -lsfml-graphics -lsfml-window -lsfml-system
+
 VALGRIND_FLAGS = -v --leak-check=full --show-leak-kinds=all --error-exitcode=99
 
 SOURCES_DEMO = Tree.hpp Node.hpp Demo.cpp
@@ -18,7 +20,7 @@ tree: demo
 	./demo
 
 demo: Demo.o Tree.o Node.o
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(GUIFLAGS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 test: Test.o TestCounter.o Tree.o Node.o
 	$(CXX) $(CXXFLAGS) $^ -o $@

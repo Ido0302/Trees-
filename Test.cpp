@@ -1,3 +1,5 @@
+//ID: 207826694
+//GMAIL: didooron@gmail.com
 
 #include <iostream>
 #include <sstream>
@@ -9,378 +11,243 @@
 
 using namespace std;
 
-TEST_CASE("Invalid tree operation: Adding a 3rd node to a binary tree")
-{
-    Node<double> root_node = Node<double>(1.1);
-    Tree<double> tree;
-    tree.add_root(root_node);
-    Node<double> n1 = Node<double>(1.2);
-    Node<double> n2 = Node<double>(1.3);
-    Node<double> n3 = Node<double>(1.4);
-    Node<double> n4 = Node<double>(1.5);
-    Node<double> n5 = Node<double>(1.6);
 
-    tree.add_sub_node(root_node, n1);
-    tree.add_sub_node(root_node, n2);
+TEST_CASE("Tests for creatue tree"){
+
+Node<int> n1 = Node<int>(10);
+Node<int> n2 = Node<int>(20);
+Node<int> n3 = Node<int>(30);
+Node<int> n4 = Node<int>(40);
+
+Tree<int> tree;
+tree.add_root(n1);
+CHECK_THROWS(tree.add_root(n2));         //add root again
+
+CHECK_THROWS(tree.add_sub_node(n2, n1)); //add root for to other node
+tree.add_sub_node(n1, n2);
+
+CHECK_THROWS(tree.add_sub_node(n4, n3)); //add node to node who not exist in tree
+tree.add_sub_node(n1,n3);
+
+CHECK_THROWS(tree.add_sub_node(n1, n4)); //add third child in binary tree
+
+Tree<int, 3> tree2;
+tree2.add_root(n1);
+tree2.add_sub_node(n1,n2);
+tree2.add_sub_node(n1,n3);
+CHECK_NOTHROW(tree2.add_sub_node(n1,n4)); //make 3-ary tree
+
+}
+
+TEST_CASE("Tests for Binary Tree Iterators - Pre-order, In-order, Post-order, BFS, DFS"){
+
+    Node<int> n1 = Node<int>(10);
+    Node<int> n2 = Node<int>(20);
+    Node<int> n3 = Node<int>(30);
+    Node<int> n4 = Node<int>(40);
+    Node<int> n5 = Node<int>(50);
+    Node<int> n6 = Node<int>(60);
+    Node<int> n7 = Node<int>(70);
+
+    Tree<int> tree;
+    tree.add_root(n1);
+
+    tree.add_sub_node(n1, n2);
     tree.add_sub_node(n1, n3);
-    tree.add_sub_node(n1, n4);
+    tree.add_sub_node(n2, n4);
     tree.add_sub_node(n2, n5);
+    tree.add_sub_node(n3, n6);
+    tree.add_sub_node(n3, n7);
 
-    CHECK_THROWS(tree.add_sub_node(root_node, n1));
-}
-
-TEST_CASE("Invalid tree operation: Adding a sub-node to a non-existent parent node")
-{
-    Tree<double> tree;
-    Node<double> parent_node = Node<double>(1.1);
-    Node<double> sub_node = Node<double>(1.2);
-
-    CHECK_THROWS(tree.add_sub_node(parent_node, sub_node));
-}
-
-/*
-TEST_CASE("Parent node not found"){
-    Tree<double> tree;
-    Node<double> parent_node = Node<double>(1.1);
-    Node<double> sub_node = Node<double>(1.2);
-
-    CHECK_THROWS(tree.add_sub_node(parent_node, sub_node));
-}
-
-TEST_CASE("Root already exists"){
-    Node<double> root_node = Node<double>(1.1);
-    Tree<double> tree;
-    tree.add_root(root_node);
-
-    CHECK_THROWS(tree.add_root(root_node));
-}
-
-TEST_CASE("Pre order traversal"){
-    Node<double> root_node = Node<double>(1.1);
-    Tree<double> tree;
-    tree.add_root(root_node);
-    Node<double> n1 = Node<double>(1.2);
-    Node<double> n2 = Node<double>(1.3);
-    Node<double> n3 = Node<double>(1.4);
-    Node<double> n4 = Node<double>(1.5);
-    Node<double> n5 = Node<double>(1.6);
-
-    tree.add_sub_node(root_node, n1);
-    tree.add_sub_node(root_node, n2);
-    tree.add_sub_node(n1, n3);
-    tree.add_sub_node(n1, n4);
-    tree.add_sub_node(n2, n5);
-
-    stringstream ss;
-    for (auto node = tree.begin_pre_order(); node != tree.end_pre_order(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<int> expected_pre_order_nodes = {10, 20, 40, 50, 30 ,60, 70};
+    size_t i =0;
+    for ( auto node = tree.begin_pre_order(); node != tree.end_pre_order(); ++node) {
+        CHECK((*node)->get_value() == expected_pre_order_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "1.1 1.2 1.4 1.5 1.3 1.6 ");
-}
-
-TEST_CASE("Post order traversal"){
-    Node<double> root_node = Node<double>(1.1);
-    Tree<double> tree;
-    tree.add_root(root_node);
-    Node<double> n1 = Node<double>(1.2);
-    Node<double> n2 = Node<double>(1.3);
-    Node<double> n3 = Node<double>(1.4);
-    Node<double> n4 = Node<double>(1.5);
-    Node<double> n5 = Node<double>(1.6);
-
-    tree.add_sub_node(root_node, n1);
-    tree.add_sub_node(root_node, n2);
-    tree.add_sub_node(n1, n3);
-    tree.add_sub_node(n1, n4);
-    tree.add_sub_node(n2, n5);
-
-    stringstream ss;
-    for (auto node = tree.begin_post_order(); node != tree.end_post_order(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<int> expected_in_order_nodes = {40, 20, 50, 10, 60 ,30, 70};
+    i =0;
+    for ( auto node = tree.begin_in_order(); node != tree.end_in_order(); ++node) {
+        CHECK((*node)->get_value() == expected_in_order_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "1.4 1.5 1.2 1.6 1.3 1.1 ");
-}
-
-TEST_CASE("In order traversal"){
-    Node<double> root_node = Node<double>(1.1);
-    Tree<double> tree;
-    tree.add_root(root_node);
-    Node<double> n1 = Node<double>(1.2);
-    Node<double> n2 = Node<double>(1.3);
-    Node<double> n3 = Node<double>(1.4);
-    Node<double> n4 = Node<double>(1.5);
-    Node<double> n5 = Node<double>(1.6);
-
-    tree.add_sub_node(root_node, n1);
-    tree.add_sub_node(root_node, n2);
-    tree.add_sub_node(n1, n3);
-    tree.add_sub_node(n1, n4);
-    tree.add_sub_node(n2, n5);
-
-    stringstream ss;
-    for (auto node = tree.begin_in_order(); node != tree.end_in_order(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<int> expected_post_order_nodes = {40, 50, 20, 60, 70 ,30, 10};
+    i =0;
+    for ( auto node = tree.begin_post_order(); node != tree.end_post_order(); ++node) {
+        CHECK((*node)->get_value() == expected_post_order_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "1.4 1.2 1.5 1.1 1.6 1.3 ");
-}
-
-TEST_CASE("BFS traversal"){
-    Node<double> root_node = Node<double>(1.1);
-    Tree<double> tree;
-    tree.add_root(root_node);
-    Node<double> n1 = Node<double>(1.2);
-    Node<double> n2 = Node<double>(1.3);
-    Node<double> n3 = Node<double>(1.4);
-    Node<double> n4 = Node<double>(1.5);
-    Node<double> n5 = Node<double>(1.6);
-
-    tree.add_sub_node(root_node, n1);
-    tree.add_sub_node(root_node, n2);
-    tree.add_sub_node(n1, n3);
-    tree.add_sub_node(n1, n4);
-    tree.add_sub_node(n2, n5);
-
-    stringstream ss;
-    for (auto node = tree.begin_bfs_scan(); node != tree.end_bfs_scan(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<int> expected_bfs_nodes = {10, 20, 30, 40, 50 ,60, 70};
+    i =0;
+    for ( auto node = tree.begin_bfs_scan(); node != tree.end_bfs_scan(); ++node) {
+        CHECK((*node)->get_value() == expected_bfs_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "1.1 1.2 1.3 1.4 1.5 1.6 ");
-}
-
-TEST_CASE("DFS traversal"){
-    Node<double> root_node = Node<double>(1.1);
-    Tree<double> tree;
-    tree.add_root(root_node);
-    Node<double> n1 = Node<double>(1.2);
-    Node<double> n2 = Node<double>(1.3);
-    Node<double> n3 = Node<double>(1.4);
-    Node<double> n4 = Node<double>(1.5);
-    Node<double> n5 = Node<double>(1.6);
-
-    tree.add_sub_node(root_node, n1);
-    tree.add_sub_node(root_node, n2);
-    tree.add_sub_node(n1, n3);
-    tree.add_sub_node(n1, n4);
-    tree.add_sub_node(n2, n5);
-
-    stringstream ss;
-    for (auto node = tree.begin_dfs_scan(); node != tree.end_dfs_scan(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<int> expected_dfs_nodes = {10, 20, 40, 50, 30 ,60, 70};
+    i =0;
+    for ( auto node = tree.begin_dfs_scan(); node != tree.end_dfs_scan(); ++node) {
+        CHECK((*node)->get_value() == expected_dfs_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "1.1 1.2 1.4 1.5 1.3 1.6 ");
-}
-
-TEST_CASE("3-ary tree DFS traversal"){
-    Tree<int, 3> three_ary_tree;
-    Node<int> int_root_node = Node<int>(1);
-    three_ary_tree.add_root(int_root_node);
-
-    Node<int> int_n1 = Node<int>(2);
-    Node<int> int_n2 = Node<int>(3);
-    Node<int> int_n3 = Node<int>(4);
-    Node<int> int_n4 = Node<int>(5);
-    Node<int> int_n5 = Node<int>(6);
-
-    three_ary_tree.add_sub_node(int_root_node, int_n1);
-    three_ary_tree.add_sub_node(int_root_node, int_n2);
-    three_ary_tree.add_sub_node(int_root_node, int_n3);
-    three_ary_tree.add_sub_node(int_n1, int_n4);
-    three_ary_tree.add_sub_node(int_n2, int_n5);
-
-    stringstream ss;
-    for (auto node = three_ary_tree.begin_dfs_scan(); node != three_ary_tree.end_dfs_scan(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<int> expected_heap_nodes = {10, 20, 40, 50, 30 ,60, 70};
+    i =0;
+    for ( auto node = tree.begin_heap(); node != tree.end_heap(); ++node) {
+        CHECK((*node)->get_value() == expected_heap_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "1 2 5 3 6 4 ");
 }
 
-TEST_CASE("3-ary DFS traversal"){
-    Tree<int, 3> three_ary_tree;
-    Node<int> int_root_node = Node<int>(1);
-    three_ary_tree.add_root(int_root_node);
-
-    Node<int> int_n1 = Node<int>(2);
-    Node<int> int_n2 = Node<int>(3);
-    Node<int> int_n3 = Node<int>(4);
-    Node<int> int_n4 = Node<int>(5);
-    Node<int> int_n5 = Node<int>(6);
-
-    three_ary_tree.add_sub_node(int_root_node, int_n1);
-    three_ary_tree.add_sub_node(int_root_node, int_n2);
-    three_ary_tree.add_sub_node(int_root_node, int_n3);
-    three_ary_tree.add_sub_node(int_n1, int_n4);
-    three_ary_tree.add_sub_node(int_n2, int_n5);
-
-    stringstream ss;
-    for (auto node = three_ary_tree.begin_dfs_scan(); node != three_ary_tree.end_dfs_scan(); ++node) {
-        ss << (*node)->get_value() << " ";
-    }
-
-    CHECK(ss.str() == "1 2 5 3 6 4 ");
-}
-
-TEST_CASE("Test myHeap Traversal"){
-     // Binary tree
-    Node<double> root_node = Node<double>(1.1);
-    Tree<double> tree; // Binary tree that contains doubles.
-    tree.add_root(root_node);
-    Node<double> n1 = Node<double>(1.2);
-    Node<double> n2 = Node<double>(1.3);
-    Node<double> n3 = Node<double>(1.4);
-    Node<double> n4 = Node<double>(1.5);
-    Node<double> n5 = Node<double>(1.6);
+TEST_CASE("Tests for 3-ary Tree Iterators - BFS, DFS"){
     
-    tree.add_sub_node(root_node, n1);
-    tree.add_sub_node(root_node, n2);
+    Node<int> n1 = Node<int>(10);
+    Node<int> n2 = Node<int>(20);
+    Node<int> n3 = Node<int>(30);
+    Node<int> n4 = Node<int>(40);
+    Node<int> n5 = Node<int>(50);
+    Node<int> n6 = Node<int>(60);
+    Node<int> n7 = Node<int>(70);
+
+    Tree<int,3> tree;
+    tree.add_root(n1);
+
+    tree.add_sub_node(n1, n2);
     tree.add_sub_node(n1, n3);
     tree.add_sub_node(n1, n4);
     tree.add_sub_node(n2, n5);
+    tree.add_sub_node(n2, n6);
+    tree.add_sub_node(n3, n7);
 
-    stringstream ss;
-    for (auto node = tree.begin_heap(); node != tree.end_heap(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<int> expected_bfs_nodes = {10, 20, 30, 40, 50 ,60, 70};
+    size_t i =0;
+    for ( auto node = tree.begin_bfs_scan(); node != tree.end_bfs_scan(); ++node) {
+        CHECK((*node)->get_value() == expected_bfs_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "1.1 1.2 1.4 1.5 1.3 1.6 ");
+    vector<int> expected_dfs_nodes = {10, 20, 50, 60, 30 ,70, 40};
+    i =0;
+    for ( auto node = tree.begin_dfs_scan(); node != tree.end_dfs_scan(); ++node) {
+        CHECK((*node)->get_value() == expected_dfs_nodes[i]);
+        i++;
+    }
+
+    //pre-order iterator on 3-ary tree like dfs iterator 
+    i =0;
+    for ( auto node = tree.begin_pre_order(); node != tree.end_pre_order(); ++node) {
+        CHECK((*node)->get_value() == expected_dfs_nodes[i]);
+        i++;
+    }
+ 
 }
 
-TEST_CASE("Complex Tree: DFS Traversal"){
+
+TEST_CASE("Tests for Complex Tree"){
+
+    Complex c1(6,8);
+    Complex c2(-5,12);
+    Complex c3(3,-4);
+
+    Node<Complex> complex_root_node = Node<Complex>(c1);
+    Node<Complex> complex_left_child_node = Node<Complex>(c2);
+    Node<Complex> complex_right_child_node = Node<Complex>(c3);
+
+
     Tree<Complex> complex_tree;
-    Node<Complex> complex_root_node = Node<Complex>(Complex(1, 2));
     complex_tree.add_root(complex_root_node);
-    Node<Complex> complex_n1 = Node<Complex>(Complex(3, 4));
-    complex_tree.add_sub_node(complex_root_node, complex_n1);
-    Node<Complex> complex_n2 = Node<Complex>(Complex(5, 6));
-    complex_tree.add_sub_node(complex_root_node, complex_n2);
+    complex_tree.add_sub_node(complex_root_node, complex_left_child_node);
+    complex_tree.add_sub_node(complex_root_node, complex_right_child_node);
 
-    stringstream ss;
-    for (auto node = complex_tree.begin_dfs_scan(); node != complex_tree.end_dfs_scan(); ++node) {
-        ss << (*node)->get_value() << " ";
+    CHECK(c1.magnitude() == 10.0);
+    CHECK(c2.magnitude() == 13.0);
+    CHECK(c3.magnitude() == 5.0);
+
+
+    vector<Complex> expected_pre_order_nodes = {c1, c2, c3};
+    size_t i =0;
+    for ( auto node = complex_tree.begin_pre_order(); node != complex_tree.end_pre_order(); ++node) {
+        CHECK((*node)->get_value() == expected_pre_order_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "1+2i 3+4i 5+6i ");
-}
-
-TEST_CASE("Complex Tree: BFS Traversal"){
-    Tree<Complex> complex_tree;
-    Node<Complex> complex_root_node = Node<Complex>(Complex(1, 2));
-    complex_tree.add_root(complex_root_node);
-    Node<Complex> complex_n1 = Node<Complex>(Complex(3, 4));
-    complex_tree.add_sub_node(complex_root_node, complex_n1);
-    Node<Complex> complex_n2 = Node<Complex>(Complex(5, 6));
-    complex_tree.add_sub_node(complex_root_node, complex_n2);
-
-    stringstream ss;
-    for (auto node = complex_tree.begin_bfs_scan(); node != complex_tree.end_bfs_scan(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<Complex> expected_in_order_nodes = {c2, c1, c3};
+    i =0;
+    for ( auto node = complex_tree.begin_in_order(); node != complex_tree.end_in_order(); ++node) {
+        CHECK((*node)->get_value() == expected_in_order_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "1+2i 3+4i 5+6i ");
-}
-
-TEST_CASE("Complex Tree: Pre Order Traversal"){
-    Tree<Complex> complex_tree;
-    Node<Complex> complex_root_node = Node<Complex>(Complex(1, 2));
-    complex_tree.add_root(complex_root_node);
-    Node<Complex> complex_n1 = Node<Complex>(Complex(3, 4));
-    complex_tree.add_sub_node(complex_root_node, complex_n1);
-    Node<Complex> complex_n2 = Node<Complex>(Complex(5, 6));
-    complex_tree.add_sub_node(complex_root_node, complex_n2);
-
-    stringstream ss;
-    for (auto node = complex_tree.begin_pre_order(); node != complex_tree.end_pre_order(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<Complex> expected_post_order_nodes = {c2, c3, c1};
+    i =0;
+    for ( auto node = complex_tree.begin_post_order(); node != complex_tree.end_post_order(); ++node) {
+        CHECK((*node)->get_value() == expected_post_order_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "1+2i 3+4i 5+6i ");
-}
-
-TEST_CASE("Complex Tree: Post Order Traversal"){
-    Tree<Complex> complex_tree;
-    Node<Complex> complex_root_node = Node<Complex>(Complex(1, 2));
-    complex_tree.add_root(complex_root_node);
-    Node<Complex> complex_n1 = Node<Complex>(Complex(3, 4));
-    complex_tree.add_sub_node(complex_root_node, complex_n1);
-    Node<Complex> complex_n2 = Node<Complex>(Complex(5, 6));
-    complex_tree.add_sub_node(complex_root_node, complex_n2);
-
-    stringstream ss;
-    for (auto node = complex_tree.begin_post_order(); node != complex_tree.end_post_order(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<Complex> expected_bfs_nodes = {c1, c2, c3};
+    i =0;
+    for ( auto node = complex_tree.begin_bfs_scan(); node != complex_tree.end_bfs_scan(); ++node) {
+        CHECK((*node)->get_value() == expected_bfs_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "3+4i 5+6i 1+2i ");
-}
-
-TEST_CASE("Complex Tree: In Order Traversal"){
-    Tree<Complex> complex_tree;
-    Node<Complex> complex_root_node = Node<Complex>(Complex(1, 2));
-    complex_tree.add_root(complex_root_node);
-    Node<Complex> complex_n1 = Node<Complex>(Complex(3, 4));
-    complex_tree.add_sub_node(complex_root_node, complex_n1);
-    Node<Complex> complex_n2 = Node<Complex>(Complex(5, 6));
-    complex_tree.add_sub_node(complex_root_node, complex_n2);
-
-    stringstream ss;
-    for (auto node = complex_tree.begin_in_order(); node != complex_tree.end_in_order(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<Complex> expected_dfs_nodes = {c1, c2, c3};
+    i =0;
+    for ( auto node = complex_tree.begin_dfs_scan(); node != complex_tree.end_dfs_scan(); ++node) {
+        CHECK((*node)->get_value() == expected_dfs_nodes[i]);
+        i++;
     }
 
-    CHECK(ss.str() == "3+4i 1+2i 5+6i ");
-}
-
-TEST_CASE("Complex Tree: Heap Traversal"){
-    Tree<Complex> complex_tree;
-    Node<Complex> complex_root_node = Node<Complex>(Complex(1, 2));
-    complex_tree.add_root(complex_root_node);
-    Node<Complex> complex_n1 = Node<Complex>(Complex(3, 4));
-    complex_tree.add_sub_node(complex_root_node, complex_n1);
-    Node<Complex> complex_n2 = Node<Complex>(Complex(5, 6));
-    complex_tree.add_sub_node(complex_root_node, complex_n2);
-
-    stringstream ss;
-    for (auto node = complex_tree.begin_heap(); node != complex_tree.end_heap(); ++node) {
-        ss << (*node)->get_value() << " ";
+    vector<Complex> expected_heap_nodes = {c3, c2, c1};
+    i =0;
+    for ( auto node = complex_tree.begin_heap(); node != complex_tree.end_heap(); ++node) {
+        CHECK((*node)->get_value() == expected_heap_nodes[i]);
+        i++;
     }
-
-    CHECK(ss.str() == "1+2i 3+4i 5+6i ");
 }
 
 
 
-TEST_CASE("Test Complex Operators"){
+TEST_CASE("Test Complex's Arithmetic Operators"){
     Complex c1(1, 2);
     Complex c2(3, 4);
     Complex c3 = c1 + c2;
     CHECK(c3.get_real() == 4);
     CHECK(c3.get_imag() == 6);
+
     Complex c4 = c1 - c2;
     CHECK(c4.get_real() == -2);
     CHECK(c4.get_imag() == -2);
+
     Complex c5 = c1 * c2;
     CHECK(c5.get_real() == -5);
     CHECK(c5.get_imag() == 10);
+
     Complex c6 = c1 / c2;
     CHECK(c6.get_real() == 0.44);
     CHECK(c6.get_imag() == 0.08);
+
     Complex c7 = -c1;
     CHECK(c7.get_real() == -1);
     CHECK(c7.get_imag() == -2);
+
     c1 += c2;
     CHECK(c1.get_real() == 4);
     CHECK(c1.get_imag() == 6);
+
     c1 -= c2;
     CHECK(c1.get_real() == 1);
     CHECK(c1.get_imag() == 2);
+
     c1 *= c2;
     CHECK(c1.get_real() == -5);
     CHECK(c1.get_imag() == 10);
+
     c1 /= c2;
     CHECK(c1.get_real() == 1);
     CHECK(c1.get_imag() == 2);
@@ -388,50 +255,34 @@ TEST_CASE("Test Complex Operators"){
     CHECK(c1 != Complex(2, 1));
 }
 
-TEST_CASE("Test <= operator"){
+TEST_CASE("Test Complex's Comparison Operators"){
     Complex c1(1, 2);
     Complex c2(3, 4);
     Complex c3(1, 2);
     Complex c4(0, 0);
+
+    CHECK(c1 == c1);
+    CHECK(c1 != c2);
+    CHECK(c2 == c2);
+    CHECK(c2 != c1);
 
     CHECK(c1 <= c2);
     CHECK(c1 <= c3);
     CHECK(c1 <= c1);
     CHECK(!(c1 <= c4));
-}
-
-TEST_CASE("Test >= operator"){
-    Complex c1(1, 2);
-    Complex c2(3, 4);
-    Complex c3(1, 2);
-    Complex c4(0, 0);
 
     CHECK(!(c1 >= c2));
     CHECK(c1 >= c3);
     CHECK(c1 >= c1);
     CHECK(c1 >= c4);
-}
-
-TEST_CASE("Test < operator"){
-    Complex c1(1, 2);
-    Complex c2(3, 4);
-    Complex c3(1, 2);
-    Complex c4(0, 0);
-
+    
     CHECK(c1 < c2);
     CHECK(!(c1 < c3));
     CHECK(!(c1 < c1));
     CHECK(!(c1 < c4));
-}
-
-TEST_CASE("Test > operator"){
-    Complex c1(1, 2);
-    Complex c2(3, 4);
-    Complex c3(1, 2);
-    Complex c4(0, 0);
-
+    
     CHECK(!(c1 > c2));
     CHECK(!(c1 > c3));
     CHECK(!(c1 > c1));
     CHECK(c1 > c4);
-}*/
+}

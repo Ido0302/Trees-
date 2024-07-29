@@ -1,3 +1,6 @@
+//ID: 207826694
+//GMAIL: didooron@gmail.com
+
 #ifndef COMPLEX_HPP
 #define COMPLEX_HPP
 
@@ -8,64 +11,64 @@ class Complex{
     private:
         double real;
         double img;
+
     public:
-        Complex(double r, double i) : real(r), img(i) {}
+        Complex(double real, double img) : real(real), img(img) {}
         double get_real() const { return real; }
         double get_imag() const { return img; }
+
         double magnitude() const { return sqrt(real * real + img * img); }
         
-        Complex operator+(const Complex &c) const {
-            return Complex(real + c.real, img + c.img);
+        Complex operator+(const Complex &other) const {
+            return Complex(real + other.real, img + other.img);
         }
-        Complex operator-(const Complex &c) const {
-            return Complex(real - c.real, img - c.img);
+
+        Complex operator-(const Complex &other) const {
+            return Complex(real - other.real, img - other.img);
         }
-        Complex operator*(const Complex &c) const {
-            return Complex(real * c.real - img * c.img, real * c.img + img * c.real);
+
+        Complex operator*(const Complex &other) const {
+            return Complex(real * other.real - img * other.img, real * other.img + img * other.real);
         }
-        Complex operator/(const Complex &c) const {
-            double denominator = c.real * c.real + c.img * c.img;
-            return Complex((real * c.real + img * c.img) / denominator, (img * c.real - real * c.img) / denominator);
+
+        Complex operator/(const Complex &other) const {
+            double denominator = other.real * other.real + other.img * other.img;
+            return Complex((real * other.real + img * other.img) / denominator, (img * other.real - real * other.img) / denominator);
         }
         
-        friend std::ostream &operator<<(std::ostream &os, const Complex &c) {
-            os << c.real << "+" << c.img << "i";
+        friend std::ostream &operator<<(std::ostream &os, const Complex &other) {
+            os << other.real << "+" << other.img << "i";
             return os;
         }
 
-        friend std::istream &operator>>(std::istream &is, Complex &c) {
-            is >> c.real >> c.img;
-            return is;
+        bool operator==(const Complex &other) const {
+            return real == other.real && img == other.img;
         }
 
-        bool operator==(const Complex &c) const {
-            return real == c.real && img == c.img;
-        }
-
-        bool operator!=(const Complex &c) const {
-            return !(*this == c);
+        bool operator!=(const Complex &other) const {
+            return !(*this == other);
         }
         
         Complex operator-() const {
             return Complex(-real, -img);
         }
 
-        Complex operator+=(const Complex &c) {
-            real += c.real;
-            img += c.img;
+        Complex operator+=(const Complex &other) {
+            real += other.real;
+            img += other.img;
             return *this;
         }
 
-        Complex operator-=(const Complex &c) {
-            real -= c.real;
-            img -= c.img;
+        Complex operator-=(const Complex &other) {
+            real -= other.real;
+            img -= other.img;
             return *this;
         }
 
-        Complex operator*=(const Complex &c) {
+        Complex operator*=(const Complex &other) {
             double temp = real;
-            real = real * c.real - img * c.img;
-            img = temp * c.img + img * c.real;
+            real = real * other.real - img * other.img;
+            img = temp * other.img + img * other.real;
             return *this;
         }
         
@@ -77,21 +80,22 @@ class Complex{
             return *this;
         }
 
-        bool operator<(const Complex &c) const {
-            return magnitude() < c.magnitude();
+        bool operator<(const Complex &other) const {
+            return magnitude() < other.magnitude();
         }
 
-        bool operator<=(const Complex &c) const {
-            return magnitude() <= c.magnitude();
+        bool operator<=(const Complex &other) const {
+            return magnitude() <= other.magnitude();
         }
 
-        bool operator>(const Complex &c) const {
-            return magnitude() > c.magnitude();
+        bool operator>(const Complex &other) const {
+            return magnitude() > other.magnitude();
         }
 
-        bool operator>=(const Complex &c) const {
-            return magnitude() >= c.magnitude();
+        bool operator>=(const Complex &other) const {
+            return magnitude() >= other.magnitude();
         }
-};
+
+}; //end class
 
 #endif

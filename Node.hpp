@@ -1,3 +1,6 @@
+//ID: 207826694
+//GMAIL: didooron@gmail.com
+
 #ifndef NODE_HPP
 #define NODE_HPP
 
@@ -16,10 +19,10 @@ public:
     Node(T key) : key(key) {};
     ~Node() {}
 
-    T getKey() const { return key; }
-    vector<Node<T>*> getChildren() const { return children; }
+    T get_value() const { return key; }
+    vector<Node<T>*> get_children() const { return children; }
 
-    void addChild(const Node<T>& child) {
+    void add_child(const Node<T>& child) {
         children.push_back(new Node<T>(child));
     }
 
